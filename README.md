@@ -14,24 +14,19 @@ docker-compose -f /path/to/docker-compose.yml up -d
 The URL Shortener can be used through a browser or in the command line.
 
 ***Browser:***
-[Visit Localhost](localhost:80/)
+Visit [localhost](localhost:80/) after the containers have been started.
 
 ***Command Line:***
-All commands can either use
-```
-localhost:80
-```
-or
-```
-www.johnodonnell.dev
-```
+All commands can either use either the local address at localhost:80/shrt or the hosted domain, www.johnodonnell.dev/shrt.
+
+Pasting URLs into Zsh can be problematic, as it inserts forward slashes in front of filename expansion characters, such as ? and =.
 
 Shorten a URL:
 ```
 curl localhost:80/shrt \
 -X POST \
 -H "Content-Type: application/json" \
--d '{"longurl":"<insert_url>"}'
+-d '{"inputurl":"<insert_url>"}'
 ```
 
 Get list of all shortened URLs:
