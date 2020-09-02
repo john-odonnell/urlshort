@@ -30,7 +30,7 @@ let urlheader = "";
 if (port == 80) {
   urlheader = "localhost:80/";
 } else {
-  urlheader = "johnodonnell.dev/";
+  urlheader = "https://www.johnodonnell.dev/";
 }
 
 
@@ -142,16 +142,20 @@ app.post("/shrt", (req, res) => {
   // curl -X POST -H "Content-Type: application/json" -d '{"longurl":"<insert_url>"}' localhost:80/shrt
   // returns:
   // JSON containing db idx, long url and short url
+
   Url.findOne({longurl: req.body.longurl}, 'idx longurl shorturl',(err, doc) => {
     if (err) {
       console.log(err);
     }
 
+    // if the url has already been shortened, return its short url
+    // otherwise, create new short url, insert into db and render index page with parameters
     if (doc) {
       res.json(doc);
     } else {
       Url.countDocuments({}, (err, count) => {
         let idx = count + 1;
+        // let idx = nextAvailableIdx
         let shorturl = urlheader + base62.encode(idx);
         let newLong = new Url({
           idx: idx,
@@ -159,11 +163,13 @@ app.post("/shrt", (req, res) => {
           shorturl: shorturl
         });
         newLong.save();
+
         res.json(newLong);
       });
     }
   });
 });
+
 
 
 
