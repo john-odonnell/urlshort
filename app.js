@@ -30,7 +30,7 @@ let urlheader = "";
 if (port == 80) {
   urlheader = "localhost:80/";
 } else {
-  urlheader = "https://www.johnodonnell.dev/";
+  urlheader = "www.johnodonnell.dev/";
 }
 
 
@@ -52,10 +52,6 @@ const urlSchema = new mongoose.Schema({
   idx: {
     type: Number,
     required: [true, "ID Required."]
-  },
-  inputurl: {
-    type: String,
-    required: [true, "Input URL required."]
   },
   longurl: {
     type: String,
@@ -82,22 +78,23 @@ app.get("/", (req, res) => {
 });
 // POST: LONG URL FROM ROOT
 app.post("/", (req, res) => {
-  Url.findOne({inputurl: req.body.inputurl}, 'idx inputurl longurl shorturl',(err, doc) => {
+  // use pattern matching to check if the url has a leading protocol
+  let long = ""
+  if (req.body.inputurl.match(/^https:\/\/www.*/) || req.body.inputurl.match(/^http:\/\/www.*/)) {
+    long = req.body.inputurl;
+  } else if (req.body.inputurl.match(/^www.*/)) {
+    long = "https://" + req.body.inputurl;
+  } else {
+    long = "https://www." + req.body.inputurl;
+  }
+
+  Url.findOne({longurl: long}, 'idx longurl shorturl',(err, doc) => {
     if (err) {
       console.log(err);
     }
 
     // if the url has already been shortened, return its short url
     // otherwise, create new short url, insert into db and render index page with parameters
-
-    // use pattern matching to check if the url has a leading protocol
-    let long = ""
-    if (req.body.inputurl.match(/^https:\/\/*/) || req.body.inputurl.match(/^http:\/\/*/)) {
-      long = req.body.inputurl;
-    } else {
-      long = "https://" + req.body.inputurl;
-    }
-
     if (doc) {
       res.render(__dirname + "/views/index.ejs", {longurl: req.body.inputurl, shorturl: doc.shorturl});
     } else {
@@ -107,7 +104,6 @@ app.post("/", (req, res) => {
         let shorturl = urlheader + base62.encode(idx);
         let newLong = new Url({
           idx: idx,
-          inputurl: req.body.inputurl,
           longurl: long,
           shorturl: shorturl
         });
@@ -138,7 +134,7 @@ app.get("/shrt/all", (req, res) => {
 app.get("/shrt/:idx", (req, res) => {
   // returns the db entry at a particular idx
   // includes idx, long url and short url
-  Url.findOne({idx: req.params.idx}, 'idx inputurl longurl shorturl',(err, doc) => {
+  Url.findOne({idx: req.params.idx}, 'idx longurl shorturl',(err, doc) => {
     if (err) {
       console.log(err);
     }
@@ -156,22 +152,25 @@ app.post("/shrt", (req, res) => {
   // curl -X POST -H "Content-Type: application/json" -d '{"longurl":"<insert_url>"}' localhost:80/shrt
   // returns:
   // JSON containing db idx, long url and short url
-  Url.findOne({inputurl: req.body.inputurl}, 'idx inputurl longurl shorturl',(err, doc) => {
+
+  // use pattern matching to check if the url has a leading protocol
+  let long = ""
+  if (req.body.inputurl.match(/^https:\/\/www.*/) || req.body.inputurl.match(/^http:\/\/www.*/)) {
+    long = req.body.inputurl;
+  } else if (req.body.inputurl.match(/^www.*/)) {
+    long = "https://" + req.body.inputurl;
+  } else {
+    long = "https://www." + req.body.inputurl;
+  }
+
+
+  Url.findOne({longurl: long}, 'idx longurl shorturl',(err, doc) => {
     if (err) {
       console.log(err);
     }
 
     // if the url has already been shortened, return its short url
     // otherwise, create new short url, insert into db and render index page with parameters
-
-    // use pattern matching to check if the url has a leading protocol
-    let long = ""
-    if (req.body.inputurl.match(/^https:\/\/*/) || req.body.inputurl.match(/^http:\/\/*/)) {
-      long = req.body.inputurl;
-    } else {
-      long = "https://" + req.body.inputurl;
-    }
-
     if (doc) {
       res.json(doc);
     } else {
@@ -181,7 +180,6 @@ app.post("/shrt", (req, res) => {
         let shorturl = urlheader + base62.encode(idx);
         let newLong = new Url({
           idx: idx,
-          inputurl: req.body.inputurl,
           longurl: long,
           shorturl: shorturl
         });
