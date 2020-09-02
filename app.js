@@ -4,8 +4,6 @@ const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
 const base62 = require("base62/lib/ascii");
-// LOCAL MODULE IMPORTS
-const compress = require("./compress")
 
 
 
