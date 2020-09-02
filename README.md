@@ -1,12 +1,14 @@
 # URL Shortnener
 ## Implemented in Node.js using mongoDB
 
+This project is usable locally, with Docker, and on my personal [domain](https://johnodonnell.dev).
+
 ### Usage
-Build Docker image, and create container exposed on port 80
+Use docker-compose to build images of webapp and local mongoDB server, then create containers off the images.
 
 ```
-docker image build path/to/urlnode/.
-docker container run -d -p 80:80 --name urlshrt urlshrt
+docker-compose -f /path/to/docker-compose.yml build
+docker-compose -f /path/to/docker-compose.yml up -d
 ```
 
 The URL Shortener can be used through a browser or in the command line.
@@ -15,7 +17,6 @@ The URL Shortener can be used through a browser or in the command line.
 [Visit Localhost](localhost:80/)
 
 ***Command Line:***
-
 Shorten a URL:
 ```
 curl localhost:80/shrt \

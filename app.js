@@ -20,11 +20,33 @@ app.use(express.static("public"));
 
 
 
+// SERVER: PORT 80 OR HEROKU PORT
+const port = process.env.PORT || 80;
+app.listen(port, () => {
+  console.log("Server running.");
+});
+// DETERMINE URL PATH HEADER AS EITHER HOSTED DOMAIN OR LOCAL
+let urlheader = "";
+if (port == 80) {
+  urlheader = "localhost:80/";
+} else {
+  urlheader = "johnodonnell.dev/";
+}
+
+
+
+
+
 // MONGODB INIT
 // connect to local mongo db
-mongoose.connect('mongodb+srv://user:mjQ9XUU93GVHQzD5@cluster0.1pvti.mongodb.net/urlshrt?retryWrites=true&w=majority',
-// mongoose.connect('mongodb://localhost:27017/urls',
-{useNewUrlParser: true, useUnifiedTopology: true});
+if (port == 80) {
+  mongoose.connect('mongodb://mongo/urlshrt',
+  {useNewUrlParser: true, useUnifiedTopology: true});
+} else {
+  mongoose.connect('mongodb+srv://user:mjQ9XUU93GVHQzD5@cluster0.1pvti.mongodb.net/urlshrt?retryWrites=true&w=majority',
+  // mongoose.connect('mongodb://localhost:27017/urls',
+  {useNewUrlParser: true, useUnifiedTopology: true});
+}
 // create document schema
 const urlSchema = new mongoose.Schema({
   idx: {
@@ -42,9 +64,6 @@ const urlSchema = new mongoose.Schema({
 });
 // create db model based off document schema
 const Url = mongoose.model("Url", urlSchema);
-
-// url path header
-const urlheader = "johnodonnell.dev/";
 
 
 
@@ -166,14 +185,4 @@ app.get("/:path", (req, res) => {
       res.send("John's URL Shortener: Invalid URL");
     }
   });
-});
-
-
-
-
-
-// SERVER: PORT 80
-const port = process.env.PORT; // || 80;
-app.listen(port, () => {
-  console.log("Server running.");
 });
