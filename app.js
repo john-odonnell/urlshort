@@ -82,6 +82,10 @@ app.post("/", (req, res) => {
   let long = ""
   if (req.body.inputurl.match(/^https:\/\/www.*/) || req.body.inputurl.match(/^http:\/\/www.*/)) {
     long = req.body.inputurl;
+  } else if (req.body.inputurl.match(/^https:\/\/*/)) {
+    long = req.body.inputurl.slice(0, 8) + "www." + req.body.inputurl.slice(8);
+  } else if (req.body.inputurl.match(/^http:\/\/*/)) {
+    long = req.body.inputurl.slice(0, 7) + "www." + req.body.inputurl.slice(7);
   } else if (req.body.inputurl.match(/^www.*/)) {
     long = "https://" + req.body.inputurl;
   } else {
@@ -157,6 +161,10 @@ app.post("/shrt", (req, res) => {
   let long = ""
   if (req.body.inputurl.match(/^https:\/\/www.*/) || req.body.inputurl.match(/^http:\/\/www.*/)) {
     long = req.body.inputurl;
+  } else if (req.body.inputurl.match(/^https:\/\/*/)) {
+    long = req.body.inputurl.slice(0, 8) + "www." + req.body.inputurl.slice(8);
+  } else if (req.body.inputurl.match(/^http:\/\/*/)) {
+    long = req.body.inputurl.slice(0, 7) + "www." + req.body.inputurl.slice(7);
   } else if (req.body.inputurl.match(/^www.*/)) {
     long = "https://" + req.body.inputurl;
   } else {
