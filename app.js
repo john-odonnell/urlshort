@@ -85,8 +85,15 @@ app.post("/", (req, res) => {
 
     // if the url has already been shortened, return its short url
     // otherwise, create new short url, insert into db and render index page with parameters
+    let long = ""
+    if (req.body.longurl.match(/^http*/)) {
+      long = req.body.longurl;
+    } else {
+      long = "https://" + req.body.longurl;
+    }
+
     if (doc) {
-      res.render(__dirname + "/views/index.ejs", {longurl: doc.longurl, shorturl: doc.shorturl});
+      res.render(__dirname + "/views/index.ejs", {longurl: req.body.longurl, shorturl: doc.shorturl});
     } else {
       Url.countDocuments({}, (err, count) => {
         let idx = count + 1;
@@ -94,7 +101,7 @@ app.post("/", (req, res) => {
         let shorturl = urlheader + base62.encode(idx);
         let newLong = new Url({
           idx: idx,
-          longurl: req.body.longurl,
+          longurl: long,
           shorturl: shorturl
         });
         newLong.save();
