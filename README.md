@@ -17,11 +17,20 @@ The URL Shortener can be used through a browser or in the command line.
 [Visit Localhost](localhost:80/)
 
 ***Command Line:***
+All commands can either use
+```
+localhost:80
+```
+or
+```
+www.johnodonnell.dev
+```
+
 Shorten a URL:
 ```
 curl localhost:80/shrt \
 -X POST \
--H "Content-Type: application.json" \
+-H "Content-Type: application/json" \
 -d '{"longurl":"<insert_url>"}'
 ```
 
