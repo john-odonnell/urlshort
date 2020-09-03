@@ -40,12 +40,17 @@ if (port == 80) {
 // MONGODB INIT
 // connect to local mongo db
 if (port == 80) {
-  mongoose.connect('mongodb://mongo/urlshrt',
-  {useNewUrlParser: true, useUnifiedTopology: true});
+  mongoose.connect('mongodb://mongo/urlshrt', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  });
 } else {
   mongoose.connect('mongodb+srv://user:mjQ9XUU93GVHQzD5@cluster0.1pvti.mongodb.net/urlshrt?retryWrites=true&w=majority',
-  // mongoose.connect('mongodb://localhost:27017/urls',
-  {useNewUrlParser: true, useUnifiedTopology: true});
+    // mongoose.connect('mongodb://localhost:27017/urls',
+    {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
 }
 // create document schema
 const urlSchema = new mongoose.Schema({
@@ -74,49 +79,69 @@ const Url = mongoose.model("Url", urlSchema);
 // GET: ROOT
 app.get("/", (req, res) => {
   // displays results if redirected from post route
-  res.render(__dirname + "/views/index.ejs", {longurl: null, shorturl: null});
+  res.render(__dirname + "/views/index.ejs", {
+    longurl: null,
+    shorturl: null,
+    badurl: false
+  });
 });
 // POST: LONG URL FROM ROOT
 app.post("/", (req, res) => {
-  // use pattern matching to check if the url has a leading protocol
-  let long = ""
-  if (req.body.inputurl.match(/^https:\/\/www.*/) || req.body.inputurl.match(/^http:\/\/www.*/)) {
-    long = req.body.inputurl;
-  } else if (req.body.inputurl.match(/^https:\/\/*/)) {
-    long = req.body.inputurl.slice(0, 8) + "www." + req.body.inputurl.slice(8);
-  } else if (req.body.inputurl.match(/^http:\/\/*/)) {
-    long = req.body.inputurl.slice(0, 7) + "www." + req.body.inputurl.slice(7);
-  } else if (req.body.inputurl.match(/^www.*/)) {
-    long = "https://" + req.body.inputurl;
+  if (!req.body.inputurl.match(/[^.]\.[^.]{2,3}/)) {
+    res.render(__dirname + "/views/index.ejs", {
+      longurl: req.body.inputurl,
+      shorturl: null,
+      badurl: true
+    });
   } else {
-    long = "https://www." + req.body.inputurl;
-  }
-
-  Url.findOne({longurl: long}, 'idx longurl shorturl',(err, doc) => {
-    if (err) {
-      console.log(err);
-    }
-
-    // if the url has already been shortened, return its short url
-    // otherwise, create new short url, insert into db and render index page with parameters
-    if (doc) {
-      res.render(__dirname + "/views/index.ejs", {longurl: req.body.inputurl, shorturl: doc.shorturl});
+    // use pattern matching to check if the url has a leading protocol
+    let long = ""
+    if (req.body.inputurl.match(/^https:\/\/www.*/) || req.body.inputurl.match(/^http:\/\/www.*/)) {
+      long = req.body.inputurl;
+    } else if (req.body.inputurl.match(/^https:\/\/*/)) {
+      long = req.body.inputurl.slice(0, 8) + "www." + req.body.inputurl.slice(8);
+    } else if (req.body.inputurl.match(/^http:\/\/*/)) {
+      long = req.body.inputurl.slice(0, 7) + "www." + req.body.inputurl.slice(7);
+    } else if (req.body.inputurl.match(/^www.*/)) {
+      long = "https://" + req.body.inputurl;
     } else {
-      Url.countDocuments({}, (err, count) => {
-        let idx = count + 1;
-        // let idx = nextAvailableIdx
-        let shorturl = urlheader + base62.encode(idx);
-        let newLong = new Url({
-          idx: idx,
-          longurl: long,
-          shorturl: shorturl
-        });
-        newLong.save();
-
-        res.render(__dirname + "/views/index.ejs", {longurl: req.body.inputurl, shorturl: shorturl});
-      });
+      long = "https://www." + req.body.inputurl;
     }
-  });
+
+    Url.findOne({longurl: long}, 'idx longurl shorturl', (err, doc) => {
+      if (err) {
+        console.log(err);
+      }
+
+      // if the url has already been shortened, return its short url
+      // otherwise, create new short url, insert into db and render index page with parameters
+      if (doc) {
+        res.render(__dirname + "/views/index.ejs", {
+          longurl: req.body.inputurl,
+          shorturl: doc.shorturl,
+          badurl: false
+        });
+      } else {
+        Url.countDocuments({}, (err, count) => {
+          let idx = count + 1;
+          // let idx = nextAvailableIdx
+          let shorturl = urlheader + base62.encode(idx);
+          let newLong = new Url({
+            idx: idx,
+            longurl: long,
+            shorturl: shorturl
+          });
+          newLong.save();
+
+          res.render(__dirname + "/views/index.ejs", {
+            longurl: req.body.inputurl,
+            shorturl: shorturl,
+            badurl: false
+          });
+        });
+      }
+    });
+  }
 });
 
 
@@ -138,7 +163,7 @@ app.get("/shrt/all", (req, res) => {
 app.get("/shrt/:idx", (req, res) => {
   // returns the db entry at a particular idx
   // includes idx, long url and short url
-  Url.findOne({idx: req.params.idx}, 'idx longurl shorturl',(err, doc) => {
+  Url.findOne({idx: req.params.idx}, 'idx longurl shorturl', (err, doc) => {
     if (err) {
       console.log(err);
     }
@@ -157,46 +182,50 @@ app.post("/shrt", (req, res) => {
   // returns:
   // JSON containing db idx, long url and short url
 
-  // use pattern matching to check if the url has a leading protocol
-  let long = ""
-  if (req.body.inputurl.match(/^https:\/\/www.*/) || req.body.inputurl.match(/^http:\/\/www.*/)) {
-    long = req.body.inputurl;
-  } else if (req.body.inputurl.match(/^https:\/\/*/)) {
-    long = req.body.inputurl.slice(0, 8) + "www." + req.body.inputurl.slice(8);
-  } else if (req.body.inputurl.match(/^http:\/\/*/)) {
-    long = req.body.inputurl.slice(0, 7) + "www." + req.body.inputurl.slice(7);
-  } else if (req.body.inputurl.match(/^www.*/)) {
-    long = "https://" + req.body.inputurl;
+  if (!req.body.inputurl.match(/[^.]\.[^.]{2,3}/)) {
+    res.send("Invalid URL Format!");
   } else {
-    long = "https://www." + req.body.inputurl;
-  }
-
-
-  Url.findOne({longurl: long}, 'idx longurl shorturl',(err, doc) => {
-    if (err) {
-      console.log(err);
-    }
-
-    // if the url has already been shortened, return its short url
-    // otherwise, create new short url, insert into db and render index page with parameters
-    if (doc) {
-      res.json(doc);
+    // use pattern matching to check if the url has a leading protocol
+    let long = ""
+    if (req.body.inputurl.match(/^https:\/\/www.*/) || req.body.inputurl.match(/^http:\/\/www.*/)) {
+      long = req.body.inputurl;
+    } else if (req.body.inputurl.match(/^https:\/\/*/)) {
+      long = req.body.inputurl.slice(0, 8) + "www." + req.body.inputurl.slice(8);
+    } else if (req.body.inputurl.match(/^http:\/\/*/)) {
+      long = req.body.inputurl.slice(0, 7) + "www." + req.body.inputurl.slice(7);
+    } else if (req.body.inputurl.match(/^www.*/)) {
+      long = "https://" + req.body.inputurl;
     } else {
-      Url.countDocuments({}, (err, count) => {
-        let idx = count + 1;
-        // let idx = nextAvailableIdx
-        let shorturl = urlheader + base62.encode(idx);
-        let newLong = new Url({
-          idx: idx,
-          longurl: long,
-          shorturl: shorturl
-        });
-        newLong.save();
-
-        res.json(newLong);
-      });
+      long = "https://www." + req.body.inputurl;
     }
-  });
+
+
+    Url.findOne({longurl: long}, 'idx longurl shorturl', (err, doc) => {
+      if (err) {
+        console.log(err);
+      }
+
+      // if the url has already been shortened, return its short url
+      // otherwise, create new short url, insert into db and render index page with parameters
+      if (doc) {
+        res.json(doc);
+      } else {
+        Url.countDocuments({}, (err, count) => {
+          let idx = count + 1;
+          // let idx = nextAvailableIdx
+          let shorturl = urlheader + base62.encode(idx);
+          let newLong = new Url({
+            idx: idx,
+            longurl: long,
+            shorturl: shorturl
+          });
+          newLong.save();
+
+          res.json(newLong);
+        });
+      }
+    });
+  }
 });
 
 

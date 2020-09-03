@@ -19,6 +19,12 @@
         <h3>Shortened URL:</h3>
         <p><%= shorturl %></p>
       <% } %>
+
+      <% if (badurl) { %>
+        <h3>Long URL:</h3>
+        <p><%= longurl %></p>
+        <p>Invalid URL!</p>
+      <% } %>
     </section>
 
 
