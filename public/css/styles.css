@@ -1,9 +1,14 @@
-#title {
-  background-color: #112d4e;
+body {
+  font-family: 'Monserrat', sans-serif;
+  background-color: #f9f7f7;
 }
 
-body {
-  background-color: #f9f7f7;
+h2 {
+  padding-top: 12px;
+}
+
+#title {
+  background-color: #112d4e;
 }
 
 .navbar-text {
