@@ -75,7 +75,6 @@ const Url = mongoose.model("Url", urlSchema);
 
 
 
-
 // WEBAPP ROUTES
 // GET: ROOT
 app.get("/", (req, res) => {
@@ -92,33 +91,8 @@ app.get("/", (req, res) => {
 
 
 // API ROUTES
-// GET: IDX SHORTENED URL
-app.get("/shrt/all", (req, res) => {
-  // returns an array contianing all db entries
-  Url.find({}, 'idx inputurl longurl shorturl', (err, docs) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.json(docs);
-    }
-  })
-})
-app.get("/shrt/:idx", (req, res) => {
-  // returns the db entry at a particular idx
-  // includes idx, long url and short url
-  Url.findOne({idx: req.params.idx}, 'idx longurl shorturl', (err, doc) => {
-    if (err) {
-      console.log(err);
-    }
-    if (doc) {
-      res.json(doc);
-    } else {
-      res.send("John's URL Shortener: Invalid URL");
-    }
-  })
-});
 // POST: URL FROM API REQ BODY
-app.post("/shrt", (req, res) => {
+app.post("/", (req, res) => {
   // post route for getting shortened url
   // used from root in browser or in the command line
   // cli usage:
@@ -126,17 +100,18 @@ app.post("/shrt", (req, res) => {
   // returns:
   // JSON containing db idx, long url and short url
 
-  // check if the url contains a protocol and add https if it doesn't
-  let long = ""
-  if (req.body.inputurl.match(/^https:\/\/*/) || req.body.inputurl.match(/^http:\/\/*/)) {
-    long = req.body.inputurl;
-  } else {
-    long = "https://" + req.body.inputurl;
-  }
-
   // if the url is valid, either find it in the db or insert it into the db
   // otherwise return error
-  if (validator.isURL(long)) {
+  // validator does not require scheme, so add scheme afterwards to keep validation pure
+  if (validator.isURL(req.body.inputurl)) {
+    // check if the url contains a scheme and add https if it doesn't
+    let long = ""
+    if (req.body.inputurl.match(/^https:\/\/*/) || req.body.inputurl.match(/^http:\/\/*/) || req.body.inputurl.match(/^ftp:\/\/*/)) {
+      long = req.body.inputurl;
+    } else {
+      long = "https://" + req.body.inputurl;
+    }
+
     Url.findOne({longurl: long}, 'idx longurl shorturl', (err, doc) => {
       if (err) {
         console.log(err);
@@ -193,10 +168,33 @@ app.post("/shrt", (req, res) => {
       // res.json({badurl: true});
       res.send(400, "\nInvalid URL.");
     }
-
   }
 });
-
+// GET: IDX SHORTENED URL
+app.get("/shrt/all", (req, res) => {
+  // returns an array contianing all db entries
+  Url.find({}, 'idx inputurl longurl shorturl', (err, docs) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.json(docs);
+    }
+  })
+})
+app.get("/shrt/:idx", (req, res) => {
+  // returns the db entry at a particular idx
+  // includes idx, long url and short url
+  Url.findOne({idx: req.params.idx}, 'idx longurl shorturl', (err, doc) => {
+    if (err) {
+      console.log(err);
+    }
+    if (doc) {
+      res.json(doc);
+    } else {
+      res.send("John's URL Shortener: Invalid URL");
+    }
+  })
+});
 
 
 
