@@ -41,7 +41,7 @@ if (port == 80) {
 // MONGODB INIT
 // connect to local mongo db
 if (port == 80) {
-  mongoose.connect('mongodb://mongo/urlshrt', {
+  mongoose.connect('mongodb://mongo/shorturldb', {
     useNewUrlParser: true,
     useUnifiedTopology: true
   });
@@ -106,7 +106,9 @@ app.post("/", (req, res) => {
   if (validator.isURL(req.body.inputurl)) {
     // check if the url contains a scheme and add https if it doesn't
     let long = ""
-    if (req.body.inputurl.match(/^https:\/\/*/) || req.body.inputurl.match(/^http:\/\/*/) || req.body.inputurl.match(/^ftp:\/\/*/)) {
+    if (req.body.inputurl.match(/^https:\/\/*/) ||
+        req.body.inputurl.match(/^http:\/\/*/)  ||
+        req.body.inputurl.match(/^ftp:\/\/*/))      {
       long = req.body.inputurl;
     } else {
       long = "https://" + req.body.inputurl;
@@ -133,7 +135,7 @@ app.post("/", (req, res) => {
 
       } else {
         Url.countDocuments({}, (err, count) => {
-          let idx = count + 1;
+          let idx = count;
           // let idx = nextAvailableIdx
           let shorturl = urlheader + base62.encode(idx);
           let newLong = new Url({
