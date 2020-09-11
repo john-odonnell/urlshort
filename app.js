@@ -1,10 +1,14 @@
+// MAIN APPLICATION MODULE
+// initializes express framework, listens for requests on a different port
+// depending on local or hosted environment, initializes dbOps
+
 // NPM PACKAGE IMPORTS
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
-const mongoose = require("mongoose");
-const base62 = require("base62");
-const validator = require("validator");
+// local imports
+const dbOps = require("./src/dbOps.js");
+const router = require("./src/router.js");
 
 
 
@@ -16,6 +20,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.set("view engine", "ejs");
 app.use(express.static("public"));
+app.use("/", router);
 
 
 
@@ -34,188 +39,14 @@ if (port == 80) {
   urlheader = "https://jod.dev/";
 }
 
+// function to export url header
+exports.getUrlHeader = function () {
+  return urlheader;
+}
+
 
 
 
 
 // MONGODB INIT
-// connect to local mongo db
-if (port == 80) {
-  mongoose.connect('mongodb://mongo/shorturldb', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  });
-} else {
-  mongoose.connect('mongodb+srv://user:mjQ9XUU93GVHQzD5@cluster0.1pvti.mongodb.net/urlshrt?retryWrites=true&w=majority',
-    // mongoose.connect('mongodb://localhost:27017/urls',
-    {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
-}
-// create document schema
-const urlSchema = new mongoose.Schema({
-  idx: {
-    type: Number,
-    required: [true, "ID Required."]
-  },
-  longurl: {
-    type: String,
-    required: [true, "Destination URL required."]
-  },
-  shorturl: {
-    type: String,
-    required: [true, "Short URL required."]
-  }
-});
-// create db model based off document schema
-const Url = mongoose.model("Url", urlSchema);
-
-
-
-
-
-// WEBAPP ROUTES
-// GET: ROOT
-app.get("/", (req, res) => {
-  // displays results if redirected from post route
-  res.render(__dirname + "/views/index.ejs", {
-    longurl: null,
-    shorturl: null,
-    badurl: false
-  });
-});
-
-
-
-
-
-// API ROUTES
-// POST: URL FROM API REQ BODY
-app.post("/", (req, res) => {
-  // post route for getting shortened url
-  // used from root in browser or in the command line
-  // cli usage:
-  // curl -X POST -H "Content-Type: application/json" -d '{"longurl":"<insert_url>"}' localhost:80/shrt
-  // returns:
-  // JSON containing db idx, long url and short url
-
-  // if the url is valid, either find it in the db or insert it into the db
-  // otherwise return error
-  // validator does not require scheme, so add scheme afterwards to keep validation pure
-  if (validator.isURL(req.body.inputurl)) {
-    // check if the url contains a scheme and add https if it doesn't
-    let long = ""
-    if (req.body.inputurl.match(/^https:\/\/*/) ||
-        req.body.inputurl.match(/^http:\/\/*/)  ||
-        req.body.inputurl.match(/^ftp:\/\/*/))      {
-      long = req.body.inputurl;
-    } else {
-      long = "https://" + req.body.inputurl;
-    }
-
-    Url.findOne({longurl: long}, 'idx longurl shorturl', (err, doc) => {
-      if (err) {
-        console.log(err);
-      }
-
-      // if the url has already been shortened, return its short url
-      // otherwise, create new short url, insert into db and render index page with parameters
-      if (doc) {
-
-        if (req.body.button == '') {
-          res.render(__dirname + "/views/index.ejs", {
-            longurl: req.body.inputurl,
-            shorturl: doc.shorturl,
-            badurl: false
-          });
-        } else {
-          res.json(doc);
-        }
-
-      } else {
-        Url.countDocuments({}, (err, count) => {
-          let idx = count;
-          // let idx = nextAvailableIdx
-          let shorturl = urlheader + base62.encode(idx);
-          let newLong = new Url({
-            idx: idx,
-            longurl: long,
-            shorturl: shorturl
-          });
-          newLong.save();
-
-          if (req.body.button == '') {
-            res.render(__dirname + "/views/index.ejs", {
-              longurl: req.body.inputurl,
-              shorturl: shorturl,
-              badurl: false
-            });
-          } else {
-            res.json(newLong);
-          }
-
-        });
-      }
-    });
-  } else {
-
-    if (req.body.button == '') {
-      res.render(__dirname + "/views/index.ejs", {
-        longurl: req.body.inputurl,
-        shorturl: null,
-        badurl: true
-      });
-    } else {
-      // res.json({badurl: true});
-      res.send(400, "\nInvalid URL.");
-    }
-  }
-});
-// GET: IDX SHORTENED URL
-app.get("/shrt/all", (req, res) => {
-  // returns an array contianing all db entries
-  Url.find({}, 'idx inputurl longurl shorturl', (err, docs) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.json(docs);
-    }
-  })
-})
-app.get("/shrt/:idx", (req, res) => {
-  // returns the db entry at a particular idx
-  // includes idx, long url and short url
-  Url.findOne({idx: req.params.idx}, 'idx longurl shorturl', (err, doc) => {
-    if (err) {
-      console.log(err);
-    }
-    if (doc) {
-      res.json(doc);
-    } else {
-      res.send("John's URL Shortener: Invalid URL");
-    }
-  })
-});
-
-
-
-
-
-// REDIRECT SHORT URLS TO DESTINATIONS
-// GET: USE SHORTENED URL
-app.get("/:path", (req, res) => {
-  // paths correspond to the bse 62 notation of the url's idx in the db
-  // either redirects to the original site, or provides and message of invalid url
-  let idx = base62.decode(req.params.path);
-  Url.findOne({idx: idx}, (err, doc) => {
-    if (err) {
-      console.log(err);
-    }
-    if (doc) {
-      res.redirect(doc.longurl);
-    } else {
-      res.send("John's URL Shortener: Invalid URL");
-    }
-  });
-});
+dbOps.init(port);

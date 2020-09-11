@@ -1,7 +1,7 @@
 FROM node
 
 # set working directory for webapp
-WORKDIR /usr/src/app
+WORKDIR /home/node/app
 
 # install packages in container from package.json
 COPY package*.json ./
