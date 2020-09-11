@@ -1,27 +1,34 @@
 # URL Shortnener
 ## Implemented in Node.js using mongoDB
 
-This project is usable locally, with Docker, and on my personal [domain](https://jod.dev).
+A browser and command-line tool for shortening URLs.
 
+---
+### Hosted Usage
+
+Visit [jod.dev](https://jod.dev) to use the service, hosted on Heroku.
+
+---
 ### Local Usage
-Use docker-compose to build images of webapp and local mongoDB server, then create containers off the images.
+Clone the repository, and cd into the repo directory.
+
+Use docker-compose to build images of the web app and a local mongoDB server, then run containers off the images.
 
 ```
-docker-compose -f /path/to/docker-compose.yml build
-docker-compose -f /path/to/docker-compose.yml up -d
+docker-compose build
+docker-compose up -d
 ```
 
-The URL Shortener can be used through a browser or in the command line.
+Visit [localhost](localhost:80/) on port 80 after the containers have been started.
 
-***Browser:***
-Visit [localhost](localhost:80/) after the containers have been started.
+---
+### Command Line Use
 
-***Command Line:***
-All commands can either use either the local address at localhost:80/ or the hosted domain, www.jod.dev/.
+All commands can either use either the local address at localhost:80/ or the hosted domain, https://www.jod.dev/.
 
-Pasting URLs into Zsh can be problematic, as it inserts forward slashes in front of filename expansion characters, such as ? and =.
+Pasting URLs into zsh can be problematic, as it inserts forward slashes in front of filename expansion characters, such as ? and =.
 
-Shorten a URL:
+**Shorten a URL:**
 ```
 curl localhost:80/ \
 -X POST \
@@ -29,12 +36,12 @@ curl localhost:80/ \
 -d '{"inputurl":"<insert_url>"}'
 ```
 
-Get list of all shortened URLs:
+**Get list of all shortened URLs:**
 ```
 curl localhost:80/shrt/all
 ```
 
-Get a particular shortened URL by database index:
+**Get a particular shortened URL by database index:**
 ```
 curl localhost:80/shrt/<insert_idx>
 ```
