@@ -74,9 +74,25 @@
       <div class="card">
         <ul class="list-group list-group-flush">
           <li class="list-group-item"><%= longurl %></li>
-          <li class="list-group-item"><%= shorturl %></li>
+          <li id="shortened" class="list-group-item">
+
+              <table class="short-table">
+                <tr>
+                  <td>
+                    <p id="short"><%= shorturl %></p>
+                  </td>
+                  <td>
+                    <button id="copy" class="btn btn-outline-primary btn-sm">Copy</button>
+                  </td>
+                </tr>
+              </table>
+
+          </li>
         </ul>
       </div>
+
+      <!-- local js for clipboard access -->
+      <script src="/js/copy.js" charset="utf-8"></script>
       <% } %>
 
       <% if (badurl) { %>
