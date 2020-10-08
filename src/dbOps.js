@@ -25,14 +25,16 @@ exports.init = function (port) {
   if (port == 80) {
     mongoose.connect('mongodb://mongo/shorturldb', {
       useNewUrlParser: true,
-      useUnifiedTopology: true
+      useUnifiedTopology: true,
+      useFindAndModify: false
     });
   } else {
-    mongoose.connect('mongodb+srv://user:mjQ9XUU93GVHQzD5@cluster0.1pvti.mongodb.net/urlshrt?retryWrites=true&w=majority',
+    mongoose.connect('mongodb+srv://user:${{ secrets.MONGO_API_KEY }}@cluster0.1pvti.mongodb.net/urlshrt?retryWrites=true&w=majority',
       // mongoose.connect('mongodb://localhost:27017/urls',
       {
         useNewUrlParser: true,
-        useUnifiedTopology: true
+        useUnifiedTopology: true,
+        useFindAndModify: false
       });
   }
   // create document schema
@@ -48,6 +50,14 @@ exports.init = function (port) {
     shorturl: {
       type: String,
       required: [true, "Short URL required."]
+    },
+    date: {
+      type: Date,
+      required: [true, "Date Required."]
+    },
+    useCount: {
+      type: Number,
+      required: [true, "User Count Required."]
     }
   });
   // create db model based off document schema
@@ -75,10 +85,13 @@ let insertNew = function (longUrl, urlHeader) {
 
       let idx = count;
       let shortUrl = urlHeader + base62.encode(idx);
+      let todayDate = new Date();
       let newLong = new Url({
         idx: idx,
         longurl: longUrl,
-        shorturl: shortUrl
+        shorturl: shortUrl,
+        date: todayDate,
+        useCount: 0
       });
       newLong.save();
 
@@ -125,6 +138,24 @@ exports.findOne = function (idx) {
   // includes idx, long url and short url
   return new Promise((resolve, reject) => {
     Url.findOne({ idx: idx }, 'idx longurl shorturl', (err, doc) => {
+      if (err) {
+        console.log(err);
+        reject(err);
+      }
+
+      if (doc) {
+        resolve(doc);
+      } else {
+        resolve({ invalidIdx: true });
+      }
+    });
+  });
+}
+
+exports.routeUsed = function (idx) {
+  // increments the db entry use count by 1
+  return new Promise((resolve, reject) => {
+    Url.findOneAndUpdate({ idx: idx }, {$inc: {useCount: 1} }, (err, doc) => {
       if (err) {
         console.log(err);
         reject(err);

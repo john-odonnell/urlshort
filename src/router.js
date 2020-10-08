@@ -123,6 +123,7 @@ router.get("/:path", async (req, res) => {
   let result = await dbOps.findOne(idx);
 
   if (result.longurl) {
+    let doc = await dbOps.routeUsed(idx);
     res.redirect(result.longurl);
   } else {
     res.send("John's URL Shortener: Invalid URL");
