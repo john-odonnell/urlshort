@@ -29,7 +29,7 @@ exports.init = function (port) {
       useFindAndModify: false
     });
   } else {
-    mongoose.connect('mongodb+srv://user:' + process.env.MONGO_API_KEY + '@cluster0.1pvti.mongodb.net/urlshrt?retryWrites=true&w=majority',
+    mongoose.connect('mongodb+srv://user:' + process.env.MONGO_API_KEY + '@cluster0.uj7dpcf.mongodb.net/urlshort?retryWrites=true&w=majority',
       // mongoose.connect('mongodb://localhost:27017/urls',
       {
         useNewUrlParser: true,
