@@ -114,21 +114,29 @@ router.get("/shrt/:idx", async (req, res) => {
 
 
 
-// REDIRECT SHORT URLS TO DESTINATIONS
+// SHOW REDIRECT, NOTIFY USER
 // GET: USE SHORTENED URL
 router.get("/:path", async (req, res) => {
-  // paths correspond to the bse 62 notation of the url's idx in the db
-  // either redirects to the original site, or provides and message of invalid url
+  console.log(req.params.path)
+  // paths correspond to the base 62 notation of the url's idx in the db
+  // either notify the user to the redirect, or provide an invalid url message
   let idx = base62.decode(req.params.path);
+  console.log(idx)
   let result = await dbOps.findOne(idx);
+  console.log(result)
 
   if (result.longurl) {
-    let doc = await dbOps.routeUsed(idx);
-    res.redirect(result.longurl);
+    let doc = await dbOps.routeUsed(idx)
+    console.log(doc)
+    res.render("./../views/redirect.ejs", {
+      longurl: result.longurl,
+      shorturl: result.shorturl
+    });
   } else {
-    res.send("John's URL Shortener: Invalid URL");
+    res.send("John's URL shortener: Invalid URL");
   }
-});
+})
+
 
 // export router object
 module.exports = router;

@@ -34,3 +34,7 @@ h1,h3,p {
 #short {
   margin-bottom: 0;
 }
+
+.redirect-notification {
+  text-align: center;
+}

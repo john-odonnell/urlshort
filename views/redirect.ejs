@@ -1,0 +1,29 @@
+<%- include("partials/header") -%>
+
+  <!-- REDIRECTING: alert the user that they are being redirected -->
+  <section id="urlshrt">
+    <div class="container-fluid">
+        <h4 class="redirect-notification">
+          You are being redirected from
+          <a href="<%= shorturl %>"><%= shorturl %></a>
+          to
+          <a href="<%= longurl %>"><%= longurl %></a>
+        </h4>
+
+        <br>
+
+        <p class="redirect-notification">Press ENTER to follow redirect</p>
+
+        <script>
+          document.addEventListener("keyup", function(event) {
+            if (event.key === 'Enter') {
+              window.location.href = "<%= longurl %>";
+            }
+          });
+        </script>
+
+        
+    </div>
+  </section>
+
+<%- include("partials/footer") -%>
